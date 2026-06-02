@@ -57,6 +57,9 @@ func collect(options Options) ([]string, []File, error) {
 		if !entry.Type().IsRegular() || !f.includeFile(path) {
 			return nil
 		}
+		if options.Output != "" && filepath.Clean(path) == filepath.Clean(options.Output) {
+			return nil
+		}
 
 		binary, err := fsutil.IsBinaryFile(path)
 		if err != nil {

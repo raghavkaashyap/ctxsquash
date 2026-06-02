@@ -117,6 +117,51 @@ func TestRenderIncludeFilter(t *testing.T) {
 	}
 }
 
+func TestRenderSkipsOutputFile(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "main.go")
+	output := filepath.Join(root, "context.md")
+	if err := os.WriteFile(source, []byte("package main\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(output, []byte("old generated context\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := Render(Options{Root: root, Output: output})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(got, "context.md") || strings.Contains(got, "old generated context") {
+		t.Fatal("expected output file to be skipped")
+	}
+	if !strings.Contains(got, "main.go") {
+		t.Fatal("expected source file to be included")
+	}
+}
+
+func TestRenderUsesLongerFenceForBackticks(t *testing.T) {
+	root := t.TempDir()
+	file := filepath.Join(root, "README.md")
+	content := "# Example\n\n```go\nfmt.Println(\"hello\")\n```\n"
+	if err := os.WriteFile(file, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := Render(Options{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(got, "````markdown\n# Example") {
+		t.Fatal("expected a four-backtick opening fence")
+	}
+	if !strings.Contains(got, "\n````\n") {
+		t.Fatal("expected a four-backtick closing fence")
+	}
+}
+
 func TestRenderRequiresDirectory(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "file.txt")
 	if err := os.WriteFile(file, []byte("hello"), 0644); err != nil {
