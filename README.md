@@ -6,7 +6,19 @@ It does not call external APIs, upload data, or require a network connection at 
 
 ## Install
 
-Build from source:
+Install with Go:
+
+```bash
+go install github.com/raghavkaashyap/ctxsquash/cmd/ctxsquash@latest
+```
+
+Make sure your Go binary directory is on `PATH`. For many setups, that means adding this to your shell profile:
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
+Or build from a local checkout:
 
 ```bash
 go build -o bin/ctxsquash ./cmd/ctxsquash
@@ -68,6 +80,17 @@ Binary files are skipped. Common generated directories such as `.git`, `node_mod
 - File size limits are not implemented yet.
 - Secret detection and redaction are not implemented yet.
 - The tree format is intentionally simple rather than a full graphical tree.
+
+## Future Work
+
+Useful follow-up issues:
+
+- Add `.gitignore` support using a small, tested ignore matcher.
+- Add `--max-file-size` to skip very large files deterministically.
+- Add secret-pattern detection with warnings before output is written.
+- Add `--format` options if other output layouts become useful.
+- Add release automation for tagged GitHub releases and prebuilt binaries.
+- Add CI with `gofmt`, `go test ./...`, and `go vet ./...`.
 
 ## Test
 
