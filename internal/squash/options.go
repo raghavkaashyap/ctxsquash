@@ -20,6 +20,13 @@ func (o Options) normalized() (Options, error) {
 	}
 
 	o.Root = root
+	if o.Output != "" {
+		output, err := filepath.Abs(o.Output)
+		if err != nil {
+			return Options{}, err
+		}
+		o.Output = output
+	}
 	o.Include = normalizeExtensions(o.Include)
 	o.Exclude = normalizeNames(o.Exclude)
 	return o, nil
