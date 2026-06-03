@@ -68,6 +68,7 @@ ctxsquash .
 ctxsquash . --output context.md
 ctxsquash . --include go,java,py,md,yml,json
 ctxsquash . --exclude node_modules,target,dist,build
+ctxsquash . --max-file-size 262144
 ctxsquash . --tree-only
 ctxsquash . --stdout
 ```
@@ -94,6 +95,12 @@ Print only the project tree:
 ctxsquash . --tree-only --stdout
 ```
 
+Skip files larger than 128 KiB:
+
+```bash
+ctxsquash . --max-file-size 131072 --stdout
+```
+
 ## Output
 
 The generated Markdown includes:
@@ -103,12 +110,11 @@ The generated Markdown includes:
 - Text file contents in Markdown code fences.
 - Language identifiers based on file extensions.
 
-Binary files are skipped. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default.
+Binary files and files larger than `--max-file-size` are skipped. The default max file size is 262144 bytes. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default.
 
 ## Limitations
 
 - `.gitignore` parsing is not implemented in the MVP.
-- File size limits are not implemented yet.
 - Secret detection and redaction are not implemented yet.
 - The tree format is intentionally simple rather than a full graphical tree.
 
