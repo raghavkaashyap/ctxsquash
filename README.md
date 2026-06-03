@@ -6,7 +6,38 @@ It does not call external APIs, upload data, or require a network connection at 
 
 ## Install
 
-Install with Go:
+Download a prebuilt binary from the [latest GitHub release](https://github.com/raghavkaashyap/ctxsquash/releases/latest). This is the best option if you do not have Go installed. Prebuilt binaries are published when a version tag such as `v0.1.0` is pushed.
+
+macOS Apple Silicon:
+
+```bash
+curl -LO https://github.com/raghavkaashyap/ctxsquash/releases/latest/download/ctxsquash_darwin_arm64.tar.gz
+tar -xzf ctxsquash_darwin_arm64.tar.gz
+chmod +x ctxsquash
+sudo mv ctxsquash /usr/local/bin/
+```
+
+macOS Intel:
+
+```bash
+curl -LO https://github.com/raghavkaashyap/ctxsquash/releases/latest/download/ctxsquash_darwin_amd64.tar.gz
+tar -xzf ctxsquash_darwin_amd64.tar.gz
+chmod +x ctxsquash
+sudo mv ctxsquash /usr/local/bin/
+```
+
+Linux x86_64:
+
+```bash
+curl -LO https://github.com/raghavkaashyap/ctxsquash/releases/latest/download/ctxsquash_linux_amd64.tar.gz
+tar -xzf ctxsquash_linux_amd64.tar.gz
+chmod +x ctxsquash
+sudo mv ctxsquash /usr/local/bin/
+```
+
+Windows users can download `ctxsquash_windows_amd64.zip` from the latest release and place `ctxsquash.exe` somewhere on `PATH`.
+
+If you have Go installed, you can also install from source:
 
 ```bash
 go install github.com/raghavkaashyap/ctxsquash/cmd/ctxsquash@latest

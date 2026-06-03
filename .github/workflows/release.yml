@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build release binaries
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: darwin
+            goarch: amd64
+            archive: tar.gz
+          - goos: darwin
+            goarch: arm64
+            archive: tar.gz
+          - goos: linux
+            goarch: amd64
+            archive: tar.gz
+          - goos: linux
+            goarch: arm64
+            archive: tar.gz
+          - goos: windows
+            goarch: amd64
+            archive: zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          binary="ctxsquash"
+          if [ "$GOOS" = "windows" ]; then
+            binary="ctxsquash.exe"
+          fi
+          go build -trimpath -ldflags="-s -w" -o "dist/$binary" ./cmd/ctxsquash
+
+      - name: Package
+        run: |
+          package="ctxsquash_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            cd dist
+            zip "../${package}.zip" ctxsquash.exe
+            cd ..
+            sha256sum "${package}.zip" > "${package}.zip.sha256"
+          else
+            tar -C dist -czf "${package}.tar.gz" ctxsquash
+            sha256sum "${package}.tar.gz" > "${package}.tar.gz.sha256"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctxsquash_${{ matrix.goos }}_${{ matrix.goarch }}
+          path: |
+            ctxsquash_${{ matrix.goos }}_${{ matrix.goarch }}.${{ matrix.archive }}
+            ctxsquash_${{ matrix.goos }}_${{ matrix.goarch }}.${{ matrix.archive }}.sha256
+
+  publish:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release-assets/* \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Prebuilt ctxsquash binaries for macOS, Linux, and Windows."
