@@ -5,12 +5,15 @@ import (
 	"strings"
 )
 
+const DefaultMaxFileSize = 262144
+
 type Options struct {
-	Root     string
-	Output   string
-	Include  []string
-	Exclude  []string
-	TreeOnly bool
+	Root        string
+	Output      string
+	Include     []string
+	Exclude     []string
+	TreeOnly    bool
+	MaxFileSize int64
 }
 
 func (o Options) normalized() (Options, error) {
@@ -29,6 +32,9 @@ func (o Options) normalized() (Options, error) {
 	}
 	o.Include = normalizeExtensions(o.Include)
 	o.Exclude = normalizeNames(o.Exclude)
+	if o.MaxFileSize <= 0 {
+		o.MaxFileSize = DefaultMaxFileSize
+	}
 	return o, nil
 }
 

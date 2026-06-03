@@ -60,6 +60,13 @@ func collect(options Options) ([]string, []File, error) {
 		if options.Output != "" && filepath.Clean(path) == filepath.Clean(options.Output) {
 			return nil
 		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if info.Size() > options.MaxFileSize {
+			return nil
+		}
 
 		binary, err := fsutil.IsBinaryFile(path)
 		if err != nil {
