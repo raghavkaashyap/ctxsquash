@@ -10,11 +10,12 @@ import (
 )
 
 type config struct {
-	output   string
-	include  string
-	exclude  string
-	treeOnly bool
-	stdout   bool
+	output      string
+	include     string
+	exclude     string
+	treeOnly    bool
+	stdout      bool
+	maxFileSize int64
 }
 
 func NewRootCommand() *cobra.Command {
@@ -30,11 +31,12 @@ func newRootCommand(stdout io.Writer) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options := squash.Options{
-				Root:     args[0],
-				Output:   cfg.output,
-				Include:  squash.SplitCSV(cfg.include),
-				Exclude:  squash.SplitCSV(cfg.exclude),
-				TreeOnly: cfg.treeOnly,
+				Root:        args[0],
+				Output:      cfg.output,
+				Include:     squash.SplitCSV(cfg.include),
+				Exclude:     squash.SplitCSV(cfg.exclude),
+				TreeOnly:    cfg.treeOnly,
+				MaxFileSize: cfg.maxFileSize,
 			}
 
 			result, err := squash.Render(options)
@@ -56,6 +58,7 @@ func newRootCommand(stdout io.Writer) *cobra.Command {
 	cmd.Flags().StringVar(&cfg.exclude, "exclude", "", "comma-separated directories to exclude")
 	cmd.Flags().BoolVar(&cfg.treeOnly, "tree-only", false, "only render the project tree")
 	cmd.Flags().BoolVar(&cfg.stdout, "stdout", false, "print Markdown to stdout")
+	cmd.Flags().Int64Var(&cfg.maxFileSize, "max-file-size", squash.DefaultMaxFileSize, "maximum file size in bytes to include")
 
 	return cmd
 }

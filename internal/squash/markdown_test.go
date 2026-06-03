@@ -162,6 +162,30 @@ func TestRenderUsesLongerFenceForBackticks(t *testing.T) {
 	}
 }
 
+func TestRenderSkipsFilesAboveMaxFileSize(t *testing.T) {
+	root := t.TempDir()
+	small := filepath.Join(root, "small.txt")
+	large := filepath.Join(root, "large.txt")
+	if err := os.WriteFile(small, []byte("small\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(large, []byte("large file content\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := Render(Options{Root: root, MaxFileSize: 8})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(got, "large.txt") || strings.Contains(got, "large file content") {
+		t.Fatal("expected oversized file to be skipped")
+	}
+	if !strings.Contains(got, "small.txt") || !strings.Contains(got, "small") {
+		t.Fatal("expected small file to be included")
+	}
+}
+
 func TestRenderRequiresDirectory(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "file.txt")
 	if err := os.WriteFile(file, []byte("hello"), 0644); err != nil {
