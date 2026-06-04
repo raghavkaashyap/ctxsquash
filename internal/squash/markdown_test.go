@@ -186,6 +186,76 @@ func TestRenderSkipsFilesAboveMaxFileSize(t *testing.T) {
 	}
 }
 
+func TestRenderRespectsRootGitIgnore(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, ".gitignore"), []byte("ignored.log\ngenerated/\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("# Included\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "ignored.log"), []byte("ignored\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	generated := filepath.Join(root, "generated")
+	if err := os.Mkdir(generated, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(generated, "out.txt"), []byte("generated\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := Render(Options{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(got, "### ignored.log") || strings.Contains(got, "- generated/") || strings.Contains(got, "### generated/out.txt") {
+		t.Fatal("expected .gitignore matches to be skipped")
+	}
+	if !strings.Contains(got, "README.md") {
+		t.Fatal("expected non-ignored file to be included")
+	}
+}
+
+func TestRenderRespectsEscapedGitIgnorePatterns(t *testing.T) {
+	root := t.TempDir()
+	gitignore := strings.Join([]string{
+		`\#secret.txt`,
+		`\!important.txt`,
+		`name\ `,
+		` leading.txt`,
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".gitignore"), []byte(gitignore), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	ignoredFiles := []string{"#secret.txt", "!important.txt", "name ", " leading.txt"}
+	for _, name := range ignoredFiles {
+		if err := os.WriteFile(filepath.Join(root, name), []byte("ignored\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("# Included\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := Render(Options{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range ignoredFiles {
+		if strings.Contains(got, "### "+name) {
+			t.Fatalf("expected escaped .gitignore pattern to skip %q", name)
+		}
+	}
+	if !strings.Contains(got, "README.md") {
+		t.Fatal("expected non-ignored file to be included")
+	}
+}
+
 func TestRenderRequiresDirectory(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "file.txt")
 	if err := os.WriteFile(file, []byte("hello"), 0644); err != nil {
