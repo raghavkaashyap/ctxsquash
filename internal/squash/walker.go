@@ -29,7 +29,10 @@ func collect(options Options) ([]string, []File, error) {
 		return nil, nil, fmt.Errorf("root path must be a directory: %s", options.Root)
 	}
 
-	f := newFilter(options)
+	f, err := newFilter(options)
+	if err != nil {
+		return nil, nil, err
+	}
 	var treePaths []string
 	var files []File
 
@@ -47,14 +50,14 @@ func collect(options Options) ([]string, []File, error) {
 		}
 
 		if entry.IsDir() {
-			if f.skipDir(entry.Name()) {
+			if f.skipDir(entry.Name(), rel) {
 				return filepath.SkipDir
 			}
 			treePaths = append(treePaths, rel+"/")
 			return nil
 		}
 
-		if !entry.Type().IsRegular() || !f.includeFile(path) {
+		if !entry.Type().IsRegular() || f.ignored(rel, false) || !f.includeFile(path) {
 			return nil
 		}
 		if options.Output != "" && filepath.Clean(path) == filepath.Clean(options.Output) {

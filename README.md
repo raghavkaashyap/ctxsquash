@@ -110,11 +110,11 @@ The generated Markdown includes:
 - Text file contents in Markdown code fences.
 - Language identifiers based on file extensions.
 
-Binary files and files larger than `--max-file-size` are skipped. The default max file size is 262144 bytes. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default.
+Binary files and files larger than `--max-file-size` are skipped. The default max file size is 262144 bytes. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default. Rules in the root `.gitignore` are also respected.
 
 ## Limitations
 
-- `.gitignore` parsing is not implemented in the MVP.
+- Nested `.gitignore` files are not loaded yet.
 - Secret detection and redaction are not implemented yet.
 - The tree format is intentionally simple rather than a full graphical tree.
 
