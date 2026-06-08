@@ -112,10 +112,14 @@ The generated Markdown includes:
 
 Binary files and files larger than `--max-file-size` are skipped. The default max file size is 262144 bytes. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default. Rules in the root `.gitignore` are also respected.
 
+## Secret Warnings
+
+ctxsquash prints warnings to stderr when included file contents look like private key headers or sensitive assignments such as API keys, tokens, secrets, or passwords. Warning messages include the file path, line number, and pattern type, but they do not print the matched value.
+
 ## Limitations
 
 - Nested `.gitignore` files are not loaded yet.
-- Secret detection and redaction are not implemented yet.
+- Secret warnings are pattern-based and may miss secrets or flag harmless test fixtures.
 - The tree format is intentionally simple rather than a full graphical tree.
 
 ## Test

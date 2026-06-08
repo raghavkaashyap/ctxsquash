@@ -19,11 +19,15 @@ type config struct {
 }
 
 func NewRootCommand() *cobra.Command {
-	return newRootCommand(os.Stdout)
+	return newRootCommand(os.Stdout, os.Stderr)
 }
 
-func newRootCommand(stdout io.Writer) *cobra.Command {
+func newRootCommand(stdout io.Writer, stderr ...io.Writer) *cobra.Command {
 	var cfg config
+	warningOutput := io.Discard
+	if len(stderr) > 0 && stderr[0] != nil {
+		warningOutput = stderr[0]
+	}
 
 	cmd := &cobra.Command{
 		Use:   "ctxsquash [path]",
@@ -39,10 +43,11 @@ func newRootCommand(stdout io.Writer) *cobra.Command {
 				MaxFileSize: cfg.maxFileSize,
 			}
 
-			result, err := squash.Render(options)
+			result, warnings, err := squash.RenderWithWarnings(options)
 			if err != nil {
 				return err
 			}
+			writeSecretWarnings(warningOutput, warnings)
 
 			if cfg.stdout || cfg.output == "" {
 				_, err = fmt.Fprint(stdout, result)
@@ -61,4 +66,10 @@ func newRootCommand(stdout io.Writer) *cobra.Command {
 	cmd.Flags().Int64Var(&cfg.maxFileSize, "max-file-size", squash.DefaultMaxFileSize, "maximum file size in bytes to include")
 
 	return cmd
+}
+
+func writeSecretWarnings(writer io.Writer, warnings []squash.SecretWarning) {
+	for _, warning := range warnings {
+		fmt.Fprintf(writer, "warning: possible %s in %s:%d; value not shown\n", warning.Kind, warning.Path, warning.Line)
+	}
 }
