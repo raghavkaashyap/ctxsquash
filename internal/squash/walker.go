@@ -16,11 +16,6 @@ type File struct {
 }
 
 func collect(options Options) ([]string, []File, error) {
-	options, err := options.normalized()
-	if err != nil {
-		return nil, nil, err
-	}
-
 	info, err := os.Stat(options.Root)
 	if err != nil {
 		return nil, nil, err

@@ -13,6 +13,7 @@ type config struct {
 	output      string
 	include     string
 	exclude     string
+	format      string
 	treeOnly    bool
 	stdout      bool
 	maxFileSize int64
@@ -41,6 +42,7 @@ func newRootCommand(stdout io.Writer, stderr ...io.Writer) *cobra.Command {
 				Exclude:     squash.SplitCSV(cfg.exclude),
 				TreeOnly:    cfg.treeOnly,
 				MaxFileSize: cfg.maxFileSize,
+				Format:      cfg.format,
 			}
 
 			result, warnings, err := squash.RenderWithWarnings(options)
@@ -58,11 +60,12 @@ func newRootCommand(stdout io.Writer, stderr ...io.Writer) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfg.output, "output", "o", "", "write Markdown to a file")
+	cmd.Flags().StringVarP(&cfg.output, "output", "o", "", "write generated context to a file")
 	cmd.Flags().StringVar(&cfg.include, "include", "", "comma-separated file extensions to include")
 	cmd.Flags().StringVar(&cfg.exclude, "exclude", "", "comma-separated directories to exclude")
+	cmd.Flags().StringVar(&cfg.format, "format", squash.FormatMarkdown, "output format: markdown or json")
 	cmd.Flags().BoolVar(&cfg.treeOnly, "tree-only", false, "only render the project tree")
-	cmd.Flags().BoolVar(&cfg.stdout, "stdout", false, "print Markdown to stdout")
+	cmd.Flags().BoolVar(&cfg.stdout, "stdout", false, "print generated context to stdout")
 	cmd.Flags().Int64Var(&cfg.maxFileSize, "max-file-size", squash.DefaultMaxFileSize, "maximum file size in bytes to include")
 
 	return cmd

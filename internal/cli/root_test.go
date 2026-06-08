@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -91,5 +92,28 @@ func TestRootCommandWarnsAboutPossibleSecrets(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "# ctxsquash Context") {
 		t.Fatal("expected markdown on stdout")
+	}
+}
+
+func TestRootCommandJSONFormat(t *testing.T) {
+	var out bytes.Buffer
+	cmd := newRootCommand(&out)
+	cmd.SetArgs([]string{filepath.Join("..", "..", "testdata", "simple-project"), "--format", "json", "--stdout"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+
+	var document struct {
+		Tree  []string `json:"tree"`
+		Files []struct {
+			Path string `json:"path"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &document); err != nil {
+		t.Fatal(err)
+	}
+	if len(document.Tree) == 0 || len(document.Files) == 0 {
+		t.Fatal("expected JSON tree and files")
 	}
 }

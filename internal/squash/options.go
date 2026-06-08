@@ -1,11 +1,14 @@
 package squash
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 )
 
 const DefaultMaxFileSize = 262144
+const FormatMarkdown = "markdown"
+const FormatJSON = "json"
 
 type Options struct {
 	Root        string
@@ -14,6 +17,7 @@ type Options struct {
 	Exclude     []string
 	TreeOnly    bool
 	MaxFileSize int64
+	Format      string
 }
 
 func (o Options) normalized() (Options, error) {
@@ -34,6 +38,13 @@ func (o Options) normalized() (Options, error) {
 	o.Exclude = normalizeNames(o.Exclude)
 	if o.MaxFileSize <= 0 {
 		o.MaxFileSize = DefaultMaxFileSize
+	}
+	if o.Format == "" {
+		o.Format = FormatMarkdown
+	}
+	o.Format = strings.ToLower(strings.TrimSpace(o.Format))
+	if o.Format != FormatMarkdown && o.Format != FormatJSON {
+		return Options{}, fmt.Errorf("unsupported format %q: expected markdown or json", o.Format)
 	}
 	return o, nil
 }
