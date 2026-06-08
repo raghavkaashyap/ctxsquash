@@ -10,13 +10,24 @@ func Render(options Options) (string, error) {
 }
 
 func RenderWithWarnings(options Options) (string, []SecretWarning, error) {
+	options, err := options.normalized()
+	if err != nil {
+		return "", nil, err
+	}
+
 	treePaths, files, err := collect(options)
 	if err != nil {
 		return "", nil, err
 	}
 
 	warnings := findSecretWarnings(files)
-	return renderMarkdown(treePaths, files, options.TreeOnly), warnings, nil
+	switch options.Format {
+	case FormatJSON:
+		result, err := renderJSON(treePaths, files, options.TreeOnly)
+		return result, warnings, err
+	default:
+		return renderMarkdown(treePaths, files, options.TreeOnly), warnings, nil
+	}
 }
 
 func renderMarkdown(treePaths []string, files []File, treeOnly bool) string {

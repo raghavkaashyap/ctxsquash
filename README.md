@@ -69,11 +69,12 @@ ctxsquash . --output context.md
 ctxsquash . --include go,java,py,md,yml,json
 ctxsquash . --exclude node_modules,target,dist,build
 ctxsquash . --max-file-size 262144
+ctxsquash . --format json
 ctxsquash . --tree-only
 ctxsquash . --stdout
 ```
 
-When `--output` is omitted, ctxsquash prints to stdout. When `--output` is provided, it writes the Markdown file to that path unless `--stdout` is also set.
+When `--output` is omitted, ctxsquash prints to stdout. When `--output` is provided, it writes the generated context file to that path unless `--stdout` is also set.
 
 ## Examples
 
@@ -101,14 +102,22 @@ Skip files larger than 128 KiB:
 ctxsquash . --max-file-size 131072 --stdout
 ```
 
+Print machine-readable JSON:
+
+```bash
+ctxsquash . --format json --stdout
+```
+
 ## Output
 
-The generated Markdown includes:
+The default Markdown output includes:
 
 - A deterministic project tree.
 - File path headings.
 - Text file contents in Markdown code fences.
 - Language identifiers based on file extensions.
+
+JSON output includes a `tree` array and a `files` array with each file path, language identifier, and content. With `--tree-only`, JSON output omits file contents.
 
 Binary files and files larger than `--max-file-size` are skipped. The default max file size is 262144 bytes. Common generated directories such as `.git`, `node_modules`, `target`, `dist`, `build`, and `vendor` are skipped by default. Rules in the root `.gitignore` are also respected.
 
@@ -120,7 +129,7 @@ ctxsquash prints warnings to stderr when included file contents look like privat
 
 - Nested `.gitignore` files are not loaded yet.
 - Secret warnings are pattern-based and may miss secrets or flag harmless test fixtures.
-- The tree format is intentionally simple rather than a full graphical tree.
+- The Markdown tree format is intentionally simple rather than a full graphical tree.
 
 ## Test
 
