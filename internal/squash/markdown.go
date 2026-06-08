@@ -5,17 +5,27 @@ import (
 )
 
 func Render(options Options) (string, error) {
+	result, _, err := RenderWithWarnings(options)
+	return result, err
+}
+
+func RenderWithWarnings(options Options) (string, []SecretWarning, error) {
 	treePaths, files, err := collect(options)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
+	warnings := findSecretWarnings(files)
+	return renderMarkdown(treePaths, files, options.TreeOnly), warnings, nil
+}
+
+func renderMarkdown(treePaths []string, files []File, treeOnly bool) string {
 	var b strings.Builder
 	b.WriteString("# ctxsquash Context\n\n")
 	b.WriteString(renderTree(treePaths))
 
-	if options.TreeOnly {
-		return b.String(), nil
+	if treeOnly {
+		return b.String()
 	}
 
 	b.WriteString("\n## Files\n")
@@ -33,7 +43,7 @@ func Render(options Options) (string, error) {
 		b.WriteByte('\n')
 	}
 
-	return b.String(), nil
+	return b.String()
 }
 
 func markdownFence(content string) string {

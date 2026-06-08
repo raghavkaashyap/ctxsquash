@@ -66,3 +66,30 @@ func TestRootCommandMaxFileSize(t *testing.T) {
 		t.Fatal("expected small file to be included")
 	}
 }
+
+func TestRootCommandWarnsAboutPossibleSecrets(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "config.env"), []byte("API_KEY=fake-value-for-tests\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd := newRootCommand(&out, &errOut)
+	cmd.SetArgs([]string{root, "--stdout"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+
+	warnings := errOut.String()
+	if !strings.Contains(warnings, "warning: possible sensitive assignment in config.env:1") {
+		t.Fatalf("expected warning on stderr, got %q", warnings)
+	}
+	if strings.Contains(warnings, "fake-value-for-tests") {
+		t.Fatal("expected warning to redact matched value")
+	}
+	if !strings.Contains(out.String(), "# ctxsquash Context") {
+		t.Fatal("expected markdown on stdout")
+	}
+}
